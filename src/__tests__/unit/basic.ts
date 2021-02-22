@@ -1,19 +1,16 @@
-import { ApolloClient } from 'apollo-client';
-import { InMemoryCache, NormalizedCacheObject } from 'apollo-cache-inmemory';
+import { ApolloClient, InMemoryCache, ServerError, ServerParseError, NormalizedCacheObject, Operation, Observable, FetchResult, ApolloLink  } from '@apollo/client';
 import { print } from 'graphql';
 import gql from 'graphql-tag';
-import { Observable, FetchResult, ApolloLink } from 'apollo-link';
-import { onError } from 'apollo-link-error';
 import delay from 'delay';
+import { onError } from "@apollo/client/link/error"
 
 import { createMessagingPorts, MockPort } from "../../test-utils/createMessagingPorts";
 import MockLink from "../../test-utils/mockLink";
 
 import { createWebExtensionMessagingExecutorListener, createWebExtensionsMessagingLink} from '../..';
-import { Operation } from 'apollo-link';
-import { ServerError, ServerParseError } from 'apollo-link-http-common';
+import console from 'console';
 
-const observableOfWithDelay = <T>(value: T, delayMs = 1000): Observable<T> => new Observable<T>(observer => {
+const observableOfWithDelay = <T>(value: T, delayMs = 1000): Observable<T> => new Observable<T>((observer: ZenObservable.SubscriptionObserver<T>) => {
   const timer = setTimeout(() => {
     observer.next(value);
     observer.complete();
@@ -41,7 +38,7 @@ describe('Basic end to end', () => {
   beforeEach(() => {
     client = new ApolloClient({
       link: createWebExtensionsMessagingLink(requesterPort),
-      cache: new InMemoryCache(),
+      cache: new InMemoryCache({}),
       // from experience, if `queryDeduplication` is true,
       // `client.watchQuery` unsubscription will not be
       // properly passed down to the `link`
@@ -114,7 +111,7 @@ describe('Basic end to end', () => {
   });
 
   it('should be able to stream a response', () => {
-    requestHandler.mockImplementation(() => new Observable(observer => {
+    requestHandler.mockImplementation(() => new Observable((observer: ZenObservable.SubscriptionObserver<FetchResult>) => {
       const timer = setTimeout(() => {
         observer.next({ data: { foo: 'bar' } });
       }, 500);
@@ -137,7 +134,7 @@ describe('Basic end to end', () => {
           if (fooValues.length == 2) {
             expect(fooValues[0]).toEqual('bar');
             expect(fooValues[1]).toEqual('foo');
-            resolve();
+            resolve(undefined);
           }
         });
     })
@@ -153,10 +150,10 @@ describe('Basic end to end', () => {
         }),
         createWebExtensionsMessagingLink(requesterPort),
       ]),
-      cache: new InMemoryCache(),
+      cache: new InMemoryCache({}),
       queryDeduplication: false,
     });
-    requestHandler.mockImplementation(() => new Observable(observer => {
+    requestHandler.mockImplementation(() => new Observable((observer: ZenObservable.SubscriptionObserver<FetchResult>) => {
       observer.error(new Error('An error'));
     }));
 
@@ -188,6 +185,8 @@ describe('Basic end to end', () => {
     await delay(100);
 
     subscription.unsubscribe();
+
+    await delay(10);
 
     expect(executorUnsubscribeSpy).toHaveBeenCalled();
   });

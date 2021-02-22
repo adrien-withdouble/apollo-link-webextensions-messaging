@@ -1,4 +1,4 @@
-import { Operation } from 'apollo-link';
+import { Operation } from '@apollo/client';
 import { print, ExecutionResult, GraphQLError } from 'graphql';
 import { Message } from './types';
 
@@ -45,7 +45,7 @@ export const operationRequestRPC = (operationId: string, operation: Operation): 
     operationName: operation.operationName,
     variables: operation.variables,
     query: print(operation.query),
-    context: operation.getContext(),
+    context: {} // operation.getContext(),
   })
 });
 export const isOperationRequestRPC = (message: Message): message is OperationRequestRPC =>

@@ -1,6 +1,6 @@
-import { ApolloLink, GraphQLRequest, execute, Observable } from 'apollo-link';
+import { ApolloLink, GraphQLRequest, execute, Observable } from '@apollo/client';
 import { parse } from 'graphql';
-import * as uniqid from 'uniqid';
+import uniqid from 'uniqid';
 
 import {
   operationRequestRPC,

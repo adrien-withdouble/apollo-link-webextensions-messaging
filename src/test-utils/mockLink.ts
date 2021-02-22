@@ -1,4 +1,4 @@
-import { ApolloLink, Observable, Operation, RequestHandler, NextLink, FetchResult } from 'apollo-link';
+import { ApolloLink, Observable, Operation, RequestHandler, NextLink, FetchResult } from '@apollo/client';
 
 export default class MockLink extends ApolloLink {
   constructor(handleRequest: RequestHandler) {
