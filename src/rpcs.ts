@@ -37,17 +37,24 @@ export type OperationRequestRPC = RPCNotificationMessage<{
   context: Record<string, unknown>;
 }>;
 export const OPERATION_REQUEST_METHOD = 'operation-request';
-export const operationRequestRPC = (operationId: string, operation: Operation): RPCNotificationMessage<string> => ({
-  jsonrpc: '2.0',
-  method: OPERATION_REQUEST_METHOD,
-  params: JSON.stringify({
-    operationId,
-    operationName: operation.operationName,
-    variables: operation.variables,
-    query: print(operation.query),
-    context: {} // operation.getContext(),
+export const operationRequestRPC = (operationId: string, operation: Operation): RPCNotificationMessage<string> => {
+  const { clientAwareness } = operation.getContext()
+  const context = {
+    clientAwareness
+  }
+
+  return ({
+    jsonrpc: '2.0',
+    method: OPERATION_REQUEST_METHOD,
+    params: JSON.stringify({
+      operationId,
+      operationName: operation.operationName,
+      variables: operation.variables,
+      query: print(operation.query),
+      context,
+    })
   })
-});
+};
 export const isOperationRequestRPC = (message: Message): message is OperationRequestRPC =>
   isRPCNotificationMessage(message) && (message.method === OPERATION_REQUEST_METHOD);
 
