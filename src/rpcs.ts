@@ -38,9 +38,10 @@ export type OperationRequestRPC = RPCNotificationMessage<{
 }>;
 export const OPERATION_REQUEST_METHOD = 'operation-request';
 export const operationRequestRPC = (operationId: string, operation: Operation): RPCNotificationMessage<string> => {
-  const { clientAwareness } = operation.getContext()
+  const { clientAwareness, headers } = operation.getContext()
   const context = {
-    clientAwareness
+    clientAwareness,
+    headers,
   }
 
   return ({
